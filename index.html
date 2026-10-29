@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>行程单样张生成器</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+        color: #202124;
+        background: #f4f6f8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      button,
+      input {
+        font: inherit;
+      }
+      .layout {
+        max-width: 1240px;
+        margin: 28px auto;
+        padding: 0 20px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .subtle {
+        color: #667085;
+        margin: 5px 0 0;
+        font-size: 13px;
+      }
+      .actions {
+        display: flex;
+        gap: 9px;
+      }
+      button {
+        border: 0;
+        border-radius: 7px;
+        padding: 9px 14px;
+        background: #1769e0;
+        color: white;
+        cursor: pointer;
+      }
+      button.light {
+        background: white;
+        border: 1px solid #d0d5dd;
+        color: #344054;
+      }
+      button.remove {
+        background: #fff1f0;
+        color: #c62828;
+        padding: 6px 9px;
+      }
+      .notice {
+        border: 1px solid #f5cf72;
+        border-radius: 8px;
+        background: #fff8e6;
+        color: #805b00;
+        padding: 11px 14px;
+        margin-bottom: 16px;
+      }
+      .panel {
+        background: white;
+        border: 1px solid #eaecf0;
+        border-radius: 10px;
+        padding: 17px;
+        margin-bottom: 16px;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0 0 13px;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      label {
+        display: grid;
+        gap: 5px;
+        color: #475467;
+        font-size: 13px;
+      }
+      input {
+        min-width: 0;
+        width: 100%;
+        border: 1px solid #d0d5dd;
+        border-radius: 6px;
+        padding: 8px;
+        color: #202124;
+      }
+      input:focus {
+        outline: 2px solid #b2d3ff;
+        border-color: #1769e0;
+      }
+      .table-scroll {
+        overflow-x: auto;
+      }
+      .editor {
+        width: 100%;
+        min-width: 850px;
+        border-collapse: collapse;
+      }
+      .editor th,
+      .editor td {
+        border-bottom: 1px solid #eaecf0;
+        padding: 7px 5px;
+        text-align: center;
+      }
+      .editor th {
+        color: #667085;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .editor input {
+        border-color: transparent;
+        text-align: center;
+      }
+      .editor input:focus {
+        border-color: #1769e0;
+      }
+      .editor input.route {
+        min-width: 140px;
+        text-align: left;
+      }
+      .preview {
+        padding: 8px 0 32px;
+      }
+      .sheet {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 22px;
+        padding: 15mm 22.5mm 15mm;
+        background: white;
+        box-shadow: 0 3px 18px #10182820;
+      }
+      .sheet > * {
+        position: relative;
+        z-index: 1;
+      }
+      .brand {
+        height: 44mm;
+        margin: 0 0 7mm;
+        padding: 0;
+        border-bottom: 1px dashed #555;
+      }
+      .brand-logo {
+        display: block;
+        width: 42mm;
+        height: 13mm;
+        object-fit: contain;
+        object-position: left center;
+        margin: 0 0 1mm;
+      }
+      .brand-banner {
+        display: block;
+        width: 100%;
+        height: 35mm;
+        object-fit: contain;
+        object-position: center top;
+      }
+      .sample-tag {
+        position: absolute;
+        top: 11mm;
+        right: 22.5mm;
+        z-index: 4;
+        display: inline-block;
+        border: 1px solid #d0d5dd;
+        border-radius: 4px;
+        padding: 3px 7px;
+        color: #667085;
+        font-size: 10px;
+        letter-spacing: 1px;
+      }
+      .sheet-title {
+        margin: 0 0 3px;
+        text-align: center;
+        font-size: 22pt;
+        font-weight: 400;
+      }
+      .english {
+        text-align: center;
+        color: #667085;
+        font:
+          8pt Arial,
+          sans-serif;
+      }
+      .person {
+        font-size: 9pt;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: end;
+        gap: 4mm;
+        margin: 25px 3mm 7mm;
+        color: #666;
+      }
+      .person-field {
+        display: flex;
+        align-items: baseline;
+        gap: 3mm;
+        min-width: 0;
+        white-space: nowrap;
+      }
+      .person-field i {
+        width: 37mm;
+        min-width: 37mm;
+        height: 6mm;
+        padding: 0 1mm;
+        border-bottom: 1px solid #666;
+        color: #333;
+        font-style: normal;
+        text-align: center;
+      }
+      .continuation-logo {
+        height: 15mm;
+        margin: 0 0 4mm;
+      }
+      .continuation-logo img {
+        display: block;
+        width: 45mm;
+        height: 100%;
+        object-fit: contain;
+        object-position: left center;
+      }
+      .sheet:not(:first-child) .trip-table {
+        margin-top: 0;
+      }
+      .sheet:not(:first-child) .sheet-foot {
+        bottom: 10mm;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px 24px;
+        margin: 0 5px 21px;
+        color: #475467;
+        font-size: 9pt;
+        line-height: 1.6;
+      }
+      .summary b {
+        font-weight: 500;
+        color: #202124;
+      }
+      .trip-table {
+        position: relative;
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 6pt;
+      }
+      .trip-table th,
+      .trip-table td {
+        border: 1px solid #dfe3e8;
+        padding: 7px 3px;
+        text-align: center;
+        overflow-wrap: anywhere;
+        line-height: 1.45;
+      }
+      .trip-table th {
+        height: 14mm;
+        font-size: 8pt;
+        font-weight: 400;
+        background: #fff;
+      }
+      .trip-table td {
+        height: 12.5mm;
+        color: #737373;
+      }
+      .sheet-foot {
+        position: absolute;
+        right: 22.5mm;
+        bottom: 25mm;
+        margin-top: 0;
+        text-align: right;
+        color: #667085;
+        font-size: 10px;
+      }
+      @media (max-width: 720px) {
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .fields {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .brand {
+          height: 160px;
+          margin: 0;
+          padding: 0 3mm;
+        }
+        .brand-logo {
+          width: 125px;
+          height: 44px;
+          margin-left: 5px;
+        }
+        .brand-banner {
+          height: 100px;
+        }
+        .sheet {
+          width: 100%;
+          min-height: 0;
+          padding: 28px 18px;
+        }
+        .person {
+          gap: 10px;
+          font-size: 12px;
+        }
+        .trip-table {
+          font-size: 8px;
+        }
+        .trip-table th,
+        .trip-table td {
+          padding: 5px 2px;
+        }
+      }
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      @media print {
+        body {
+          background: white;
+        }
+        .layout {
+          display: none;
+        }
+        .brand {
+          height: 44mm;
+          margin: 0 0 7mm;
+          padding: 0;
+        }
+        .brand-logo {
+          width: 42mm;
+          height: 13mm;
+          margin: 0 0 1mm 8mm;
+        }
+        .brand-banner {
+          height: 35mm;
+        }
+        .sample-tag {
+          right: 22.5mm;
+        }
+        .sheet {
+          width: 210mm;
+          height: 297mm;
+          min-height: 297mm;
+          margin: 0;
+          padding: 15mm 22.5mm 15mm;
+          box-shadow: none;
+          page-break-after: always;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
+        .sheet:last-child {
+          page-break-after: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <header>
+        <div>
+          <h1>行程单样张生成器</h1>
+        </div>
+        <div class="actions">
+          <button id="add" class="light" type="button">＋ 添加行程</button
+          ><button id="print" type="button">打印 / 导出 PDF</button>
+        </div>
+      </header>
+      <div class="notice">
+        本页面仅用于界面演示与测试。生成内容为虚构模拟样张，不属于任何平台的官方凭证或报销凭证。
+      </div>
+      <section class="panel">
+        <h2>乘车人信息</h2>
+        <div class="fields" id="fields"></div>
+      </section>
+      <section class="panel">
+        <h2>
+          行程明细
+          <span class="subtle" style="display: inline"
+            >（编辑后自动更新预览）</span
+          >
+        </h2>
+        <div class="table-scroll">
+          <table class="editor">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>车型</th>
+                <th>上车时间</th>
+                <th>城市</th>
+                <th>起点</th>
+                <th>终点</th>
+                <th>里程</th>
+                <th>金额</th>
+                <th>备注</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <div class="preview" id="preview"></div>
+    <script>
+      const fieldDefs = [
+        ["姓名", "name"],
+        ["工号", "employee"],
+        ["部门", "department"],
+        ["申请日期", "apply", "date"],
+        ["行程开始日期", "start", "date"],
+        ["行程结束日期", "end", "date"],
+        ["行程人手机号", "phone"],
+      ];
+      const fields = document.querySelector("#fields");
+      fieldDefs.forEach(([label, id, type = "text"]) => {
+        const wrapper = document.createElement("label");
+        wrapper.append(label);
+        const input = document.createElement("input");
+        input.id = id;
+        input.type = type;
+        input.addEventListener("input", render);
+        wrapper.append(input);
+        fields.append(wrapper);
+      });
+      let trips = [];
+      const escapeHtml = (value) =>
+        String(value ?? "").replace(
+          /[&<>"']/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[char],
+        );
+      const readField = (id) => document.getElementById(id).value || "—";
+      function drawRows() {
+        const rows = document.querySelector("#rows");
+        rows.innerHTML = trips
+          .map(
+            (trip, index) =>
+              `<tr><td>${index + 1}</td>${["car", "time", "city", "from", "to", "km", "fee", "note"].map((key) => `<td><input ${["from", "to"].includes(key) ? 'class="route"' : ""} data-index="${index}" data-key="${key}" value="${escapeHtml(trip[key])}" aria-label="${key}"></td>`).join("")}<td><button class="remove" data-remove="${index}" type="button">删除</button></td></tr>`,
+          )
+          .join("");
+        rows.querySelectorAll("input").forEach((input) =>
+          input.addEventListener("input", () => {
+            trips[+input.dataset.index][input.dataset.key] = input.value;
+            render();
+          }),
+        );
+        rows.querySelectorAll("[data-remove]").forEach((button) =>
+          button.addEventListener("click", () => {
+            trips.splice(+button.dataset.remove, 1);
+            drawRows();
+            render();
+          }),
+        );
+        render();
+      }
+      function render() {
+        const visibleTrips = trips.filter((trip) =>
+          Object.values(trip).some((value) => String(value).trim() !== ""),
+        );
+        const total = visibleTrips
+          .reduce((sum, trip) => sum + (Number.parseFloat(trip.fee) || 0), 0)
+          .toFixed(2);
+        const pages = [];
+        for (let index = 0; index < visibleTrips.length; index += 10)
+          pages.push(visibleTrips.slice(index, index + 10));
+        if (!pages.length) pages.push([]);
+        document.querySelector("#preview").innerHTML = pages
+          .map(
+            (pageTrips, page) =>
+              `<article class="sheet">${page === 0 ? `<div class="brand"><img class="brand-logo" src="assets/didi-logo.png" alt="滴滴出行模拟标识"><img class="brand-banner" src="assets/enterprise-banner.png" alt="模拟演示横幅"></div><h2 class="sheet-title">滴滴出行-行程单</h2><div class="english">DIDI TRAVEL - TRIP TABLE</div><div class="person"><span class="person-field">姓名：<i>${escapeHtml(document.getElementById("name").value)}</i></span><span class="person-field">工号：<i>${escapeHtml(document.getElementById("employee").value)}</i></span><span class="person-field">部门：<i>${escapeHtml(document.getElementById("department").value)}</i></span></div><div class="summary"><div>· 申请日期：${escapeHtml(readField("apply"))}<br>· 行程人手机号：${escapeHtml(readField("phone"))}</div><div>· 行程起止日期：${escapeHtml(readField("start"))} 至 ${escapeHtml(readField("end"))}<br>· 共${visibleTrips.length}笔行程，合计${total}元</div></div>` : `<div class="continuation-logo"><img src="assets/didi-logo.png" alt="滴滴出行模拟标识"></div>`}<table class="trip-table"><colgroup><col style="width:4.5%"><col style="width:5.5%"><col style="width:9.5%"><col style="width:6.5%"><col style="width:33%"><col style="width:21%"><col style="width:8.5%"><col style="width:7%"><col style="width:4.5%"></colgroup><thead><tr><th>序号</th><th>车型</th><th>上车时间</th><th>城市</th><th>起点</th><th>终点</th><th>里程[公里]</th><th>金额[元]</th><th>备注</th></tr></thead><tbody>${pageTrips.map((trip, index) => `<tr><td>${page * 10 + index + 1}</td>${["car", "time", "city", "from", "to", "km", "fee", "note"].map((key) => `<td>${escapeHtml(trip[key] || "—")}</td>`).join("")}</tr>`).join("")}</tbody></table><div class="sheet-foot">页码：${page + 1}/${pages.length}</div></article>`,
+          )
+          .join("");
+      }
+      document.querySelector("#add").addEventListener("click", () => {
+        trips.push({
+          car: "",
+          time: "",
+          city: "",
+          from: "",
+          to: "",
+          km: "",
+          fee: "",
+          note: "",
+        });
+        drawRows();
+      });
+      document
+        .querySelector("#print")
+        .addEventListener("click", () => window.print());
+      drawRows();
+    </script>
+  </body>
+</html>
