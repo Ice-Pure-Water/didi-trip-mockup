@@ -10,7 +10,9 @@ There is no package manager or build configuration in the repository. Open `inde
 
 - `python3 -m http.server 8000` — serve the page at `http://localhost:8000`.
 
-No automated build or test command is configured. When changing behavior, exercise the affected controls in a browser and check the page at desktop and narrow viewport widths.
+GitHub Pages publishes the repository root as static files. The public page is the deployed `index.html` at `https://ice-pure-water.github.io/didi-trip-mockup/`; its assets are served from the matching `/assets/` paths. There is no server-side application or build step.
+
+No automated build or test command is configured. When changing behavior, exercise the affected controls in a browser and check the deployed static HTML page at desktop and narrow viewport widths.
 
 ## Coding Style & Naming Conventions
 
@@ -22,7 +24,7 @@ There is no test framework or coverage requirement at present. For UI changes, v
 
 ## Commit & Pull Request Guidelines
 
-This directory has no Git metadata, so repository-specific commit conventions cannot be established. Use concise, imperative commit subjects that describe the change. Pull requests should explain the user-visible behavior changed, list manual verification performed, link related work when applicable, and include screenshots for visual changes.
+The project is hosted at `Ice-Pure-Water/didi-trip-mockup`. Keep commits concise and use imperative subjects to describe the change. Use concise, imperative commit subjects that describe the change. Pull requests should explain the user-visible behavior changed, list manual verification performed, link related work when applicable, and include screenshots for visual changes.
 
 ## Security & Configuration
 
