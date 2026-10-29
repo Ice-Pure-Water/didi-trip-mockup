@@ -381,7 +381,7 @@
         </div>
         <div class="actions">
           <button id="add" class="light" type="button">＋ 添加行程</button
-          ><button id="print" type="button">打印 / 导出 PDF</button>
+          ><button id="print" type="button">下载 PDF</button>
         </div>
       </header>
       <div class="notice">
@@ -420,6 +420,7 @@
       </section>
     </main>
     <div class="preview" id="preview"></div>
+    <script src="assets/vendor/jspdf.2.5.1.umd.min.js"></script>
     <script>
       const fieldDefs = [
         ["姓名", "name"],
@@ -511,7 +512,34 @@
       });
       document
         .querySelector("#print")
-        .addEventListener("click", () => window.print());
+        .addEventListener("click", async () => {
+          const button = document.querySelector("#print");
+          button.disabled = true;
+          button.textContent = "正在生成…";
+          try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+            const sheets = [...document.querySelectorAll(".sheet")];
+            for (const [index, sheet] of sheets.entries()) {
+              if (index) pdf.addPage();
+              await pdf.html(sheet, {
+                x: 0,
+                y: 0,
+                width: 210,
+                windowWidth: sheet.scrollWidth,
+                autoPaging: false,
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+              });
+            }
+            pdf.save("滴滴行程单样张.pdf");
+          } catch (error) {
+            console.error("PDF generation failed", error);
+            alert("PDF 生成失败，请检查网络连接后重试。");
+          } finally {
+            button.disabled = false;
+            button.textContent = "下载 PDF";
+          }
+        });
       drawRows();
     </script>
   </body>
